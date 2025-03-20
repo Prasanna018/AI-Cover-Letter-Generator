@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
 import { generateCoverLetter } from "../_prompt/prompt";
+import { toast } from "react-toastify";
 
 type Personal = {
   name: string;
@@ -68,14 +69,27 @@ export default function CreateCoverLetter() {
         setter((prev: any) => ({ ...prev, [id]: value }));
       };
 
+  const validateForm = (formData: Record<string, string>) => {
+    return Object.values(formData).every((val) => val.trim() !== "");
+  };
+
   const handleGenerateCoverLetter = async () => {
     setLoading(true);
+
+    // Validation: Ensure all required fields are filled
+    if (!validateForm(personalFormData) || !validateForm(jobFormData) || !validateForm(skillsFormData)) {
+      toast.error("Please fill in all required fields before generating the cover letter.");
+      setLoading(false);
+      return;
+    }
+
     try {
       const coverLetter = await generateCoverLetter(personalFormData, jobFormData, skillsFormData);
       setGeneratedCoverLetter(coverLetter);
       setActiveTab("preview");
     } catch (error) {
       console.error("Error generating cover letter:", error);
+      toast.error("An error occurred while generating the cover letter. Please try again.");
     } finally {
       setLoading(false);
     }
